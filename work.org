@@ -1,0 +1,31 @@
+* Tasks
+** TODO Investigate adding right click menu
+*** Toggle blocking
+*** Toggle dev mode?
+** TODO Update popup UI to reflect time spent playing
+** TODO Allow users to edit limits during session, but only "down"
+*** Allow going back up but only to initial limit at session start
+
+* Notes
+** Technical Stack
+- Framework: WXT (Web Extension Framework)
+- TypeScript
+- Browser Extension APIs (declarativeNetRequest, storage, runtime)
+
+** Architecture
+*** Background Script
+- Monitors chess game limits
+- Updates blocking rules dynamically
+- Tracks game results (win/loss/draw)
+- Auto-resets stats after 12 hours
+
+*** Blocking Mechanism
+- Uses declarativeNetRequest API
+- Redirects to blocked.html when limits exceeded
+- Blocks URLs:
+  - Chess.com: =*://www.chess.com/service/matcher/seeks/chess=
+  - Lichess: =*://lichess.org/play/*=
+
+* Ideas & Future Work
+** Add analytics/statistics dashboard
+** Support for additional chess platforms
