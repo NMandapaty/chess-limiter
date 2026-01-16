@@ -18,6 +18,7 @@ export interface GameStats {
   lastGameResult: "win" | "loss" | "draw" | null;
   limitExceededAt: number | null; // timestamp when limits were first exceeded
   lastGamePlayedAt: number | null; // timestamp of the last game played
+  blockingEnabled: boolean; // manual toggle for blocking - auto-enabled when limits exceeded
 }
 
 export const DEFAULT_LIMITS: LimitsState = {
@@ -47,4 +48,5 @@ export const DEFAULT_STATS: GameStats = {
   lastGameResult: null,
   limitExceededAt: null,
   lastGamePlayedAt: null,
+  blockingEnabled: false,
 };

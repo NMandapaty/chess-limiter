@@ -19,11 +19,20 @@ export default defineBackground(() => {
     }
 
     const { exceeded, reasons } = await LimitsStorage.checkLimitsExceeded();
+    const stats = await LimitsStorage.getStats();
 
-    if (exceeded) {
-      // Set the limitExceededAt timestamp if not already set
-      const stats = await LimitsStorage.getStats();
-      if (!stats.limitExceededAt) {
+    // Auto-enable blocking when limits are exceeded
+    if (exceeded && !stats.blockingEnabled) {
+      await LimitsStorage.updateStats({ blockingEnabled: true });
+      stats.blockingEnabled = true;
+    }
+
+    // Block if limits exceeded OR manually enabled
+    const shouldBlock = exceeded || stats.blockingEnabled;
+
+    if (shouldBlock) {
+      // Set the limitExceededAt timestamp if not already set (only for limit-triggered blocking)
+      if (exceeded && !stats.limitExceededAt) {
         await LimitsStorage.updateStats({
           limitExceededAt: Date.now(),
         });
@@ -36,38 +45,31 @@ export default defineBackground(() => {
             id: 1,
             priority: 1,
             action: {
-              type: "redirect" as chrome.declarativeNetRequest.RuleActionType,
-              redirect: {
-                url: browser.runtime.getURL("blocked.html"),
-              },
+              type: "block" as chrome.declarativeNetRequest.RuleActionType,
             },
             condition: {
-              urlFilter: "*://www.chess.com/service/matcher/seeks/chess",
-              resourceTypes: [
-                "main_frame" as chrome.declarativeNetRequest.ResourceType,
-              ],
+              urlFilter: "||chess.com/service/matcher/seeks/chess",
+              requestMethods: ["post"],
             },
           },
           {
             id: 2,
             priority: 1,
             action: {
-              type: "redirect" as chrome.declarativeNetRequest.RuleActionType,
-              redirect: {
-                url: browser.runtime.getURL("blocked.html"),
-              },
+              type: "block" as chrome.declarativeNetRequest.RuleActionType,
             },
             condition: {
-              urlFilter: "*://lichess.org/*",
-              resourceTypes: [
-                "main_frame" as chrome.declarativeNetRequest.ResourceType,
-              ],
+              urlFilter: "||lichess*.org/setup/hook",
+              requestMethods: ["post"],
             },
           },
         ],
       });
 
-      console.log("Blocking enabled. Reasons:", reasons);
+      console.log(
+        "Blocking enabled.",
+        exceeded ? `Reasons: ${reasons.join(", ")}` : "Manual toggle"
+      );
     } else {
       // Remove blocking rules
       await browser.declarativeNetRequest.updateDynamicRules({

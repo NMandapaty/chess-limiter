@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import LimitItem from '@/components/LimitItem.vue';
+import BlockingToggle from '@/components/BlockingToggle.vue';
 import { LimitsStorage } from '@/utils/storage';
 import type { LimitsState } from '@/types/limits';
 
@@ -24,6 +25,8 @@ async function updateLimit(key: keyof LimitsState, value: LimitsState[keyof Limi
       <h1>Chess Limiter</h1>
       <p>Set limits to maintain healthy chess playing habits</p>
     </header>
+
+    <BlockingToggle />
 
     <div v-if="limits" class="limits-container">
       <LimitItem
